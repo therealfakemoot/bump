@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"errors"
+	"go.uber.org/zap"
 
-	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 
 	"github.com/therealfakemoot/bump/pkg/git"
@@ -13,15 +12,12 @@ import (
 func inc(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 
-	log, err := logr.FromContext(ctx)
-	if err != nil {
-		cmd.PrintErrf("error getting log: %v\n", err)
-		return err
-	}
+	log := ctx.Value(LogKey).(*zap.Logger)
 
-	log = log.WithName(cmd.CommandPath())
-
-	log = log.WithValues("Current Tag", currentTag)
+	log = log.With(
+		zap.String("command path", cmd.CommandPath()),
+		zap.String("current tag", currentTag),
+	)
 
 	version := semver.New(currentTag)
 
@@ -33,19 +29,19 @@ func inc(cmd *cobra.Command, args []string) error {
 	case "bump major":
 		version.IncMajor()
 	default:
-		log.Error(errors.New("command not matched"), "increment", "commandPath", cmd.CommandPath())
-		return err
+		log.Error("execution failed", zap.Error(ErrCommandNotMatched))
+		return ErrCommandNotMatched
 	}
 
-	log = log.WithValues("New  Tag", version.StringFull())
+	log = log.With(zap.String("new tag", version.StringFull()))
 
-	log.Info("values")
+	log.Debug("values")
 
 	if !dryRun {
 		g := ctx.Value("git").(*git.Git)
 
 		if err := g.CreateTag(version.StringFull()); err != nil {
-			log.Error(err, "Create Tag")
+			log.Error("could not create tag", zap.Error(err))
 			return err
 		}
 	}

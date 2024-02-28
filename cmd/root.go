@@ -18,15 +18,22 @@ package cmd
 import (
 	"context"
 	"errors"
-	"os"
 
-	"github.com/bombsimon/logrusr/v2"
-	"github.com/go-logr/logr"
+	"go.uber.org/zap"
+
 	"github.com/manifoldco/promptui"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/therealfakemoot/bump/pkg/git"
 	"github.com/therealfakemoot/bump/pkg/semver"
+)
+
+type LogContextKey string
+
+const LogKey LogContextKey = "logger"
+
+var (
+	ErrDirtyRepo         = errors.New("repo is dirty")
+	ErrCommandNotMatched = errors.New("command not matched")
 )
 
 var (
@@ -47,21 +54,26 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	logrusLog := logrus.New()
-	log := logrusr.New(logrusLog)
-
-	ctx := logr.NewContext(context.Background(), log)
+	logConfig := zap.NewProductionConfig()
+	logConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	logConfig.DisableStacktrace = true
+	log := zap.Must(logConfig.Build())
+	defer log.Sync()
 
 	g, err := git.New()
 	if err != nil {
-		log.Error(err, "git new")
-		os.Exit(1)
+		log.Fatal("error loading git repo", zap.Error(err))
 	}
 
+	ctx := context.WithValue(
+		context.Background(),
+		LogKey,
+		log,
+	)
 	ctx = context.WithValue(ctx, "git", g)
 
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
-		log.Error(err, "ExecuteContext")
+		log.Error("error executing rootCmd", zap.Error(err))
 	}
 }
 
@@ -75,29 +87,24 @@ func init() {
 
 func preRun(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
-	log, err := logr.FromContext(ctx)
-	if err != nil {
-		cmd.PrintErrf("error getting log: %v\n", err)
-		return err
-	}
+	log := ctx.Value(LogKey).(*zap.Logger)
 
 	g := ctx.Value("git").(*git.Git)
 
 	if !allowDirty {
 		if g.IsDirty() {
-			err := errors.New("is dirty")
-			log.Error(err, "test dirty")
-			return err
+			log.Error("repo is dirty", zap.Error(ErrDirtyRepo))
 		}
 	}
 
 	tags, err := g.Tags()
 	if err != nil {
-		log.Error(err, "get tags")
+		log.Error("unable to fetch tags", zap.Error(err))
+
 		return err
 	}
 
-	log = log.WithValues("tags", tags)
+	log = log.With(zap.Strings("tags", tags))
 
 	if !latestTag {
 		prompt := promptui.Select{
@@ -108,19 +115,18 @@ func preRun(cmd *cobra.Command, args []string) error {
 		_, currentTag, err = prompt.Run()
 
 		if err != nil {
-			log.Error(err, "prompt run")
+			log.Error("prompt threw an error", zap.Error(err))
 			return err
 		}
-
 	} else {
 		currentTag, err = semver.Latest(tags)
 		if err != nil {
-			log.Error(err, "get latest tag")
+			log.Error("semver could not fetch latest tag", zap.Error(err))
 			return err
 		}
 	}
 
-	log.Info("tag choosed", "current tag", currentTag)
+	log.Info("tag chosen", zap.String("current tag", currentTag))
 
 	return nil
 }

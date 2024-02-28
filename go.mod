@@ -1,15 +1,13 @@
 module github.com/therealfakemoot/bump
 
-go 1.17
+go 1.20
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/bombsimon/logrusr/v2 v2.0.1
 	github.com/go-git/go-git/v5 v5.4.2
-	github.com/go-logr/logr v1.2.0
 	github.com/manifoldco/promptui v0.9.0
-	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
+	go.uber.org/zap v1.27.0
 )
 
 require (
@@ -28,6 +26,8 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
