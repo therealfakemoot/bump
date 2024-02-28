@@ -1,0 +1,21 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cmd",
+    srcs = [
+        "common.go",
+        "major.go",
+        "minor.go",
+        "patch.go",
+        "root.go",
+    ],
+    importpath = "github.com/therealfakemoot/bump/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/git",
+        "//pkg/semver",
+        "@com_github_manifoldco_promptui//:promptui",
+        "@com_github_spf13_cobra//:cobra",
+        "@org_uber_go_zap//:zap",
+    ],
+)
