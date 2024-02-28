@@ -1,4 +1,4 @@
-module github.com/guilhem/bump
+module github.com/therealfakemoot/bump
 
 go 1.17
 

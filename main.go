@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/guilhem/bump/cmd"
+import "github.com/therealfakemoot/bump/cmd"
 
 func main() {
 	cmd.Execute()

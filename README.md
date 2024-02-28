@@ -23,7 +23,7 @@ $ brew install guilhem/homebrew-tap/bump
 ### [Go get](https://golang.org/pkg/cmd/go/internal/get/)
 
 ```sh
-$ go get github.com/guilhem/bump
+$ go get github.com/therealfakemoot/bump
 ```
 
 ## Usage
@@ -67,7 +67,7 @@ $ git tag
 ### Minor
 
 ```sh
-$ git tag 
+$ git tag
 v1.1.1
 $ bump minor
 $ git tag

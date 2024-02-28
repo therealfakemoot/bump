@@ -4,9 +4,10 @@ import (
 	"errors"
 
 	"github.com/go-logr/logr"
-	"github.com/guilhem/bump/pkg/git"
-	"github.com/guilhem/bump/pkg/semver"
 	"github.com/spf13/cobra"
+
+	"github.com/therealfakemoot/bump/pkg/git"
+	"github.com/therealfakemoot/bump/pkg/semver"
 )
 
 func inc(cmd *cobra.Command, args []string) error {
