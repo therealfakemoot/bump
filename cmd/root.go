@@ -104,7 +104,11 @@ func preRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	log = log.With(zap.Strings("tags", tags))
+	displayTags := tags
+	if len(tags) > 5 {
+		displayTags = tags[:5]
+	}
+	log = log.With(zap.Strings("tags", displayTags))
 
 	if !latestTag {
 		prompt := promptui.Select{
