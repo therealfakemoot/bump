@@ -1,9 +1,14 @@
 package semver
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+)
+
+var (
+	ErrNoTags = errors.New("no suitable tags found")
 )
 
 type Bump struct {
@@ -55,6 +60,10 @@ func Latest(tags []string) (string, error) {
 		}
 
 		vs = append(vs, v)
+	}
+
+	if len(vs) < 1 {
+		return "", ErrNoTags
 	}
 
 	latest := vs[0]
